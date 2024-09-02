@@ -100,10 +100,91 @@ var customerSales = context.CustomerSales.ToList();
 //    context.SaveChanges();
 //}
 
+//1) List of customer from database who dont have sales
+
+var customersWithNoSales = context.Customers
+.Where(c => !context.Sales.Any(s => s.CustomerId == c.Id))
+.ToList();
+
+
+foreach (var Customer in customersWithNoSales)
+{
+    Console.WriteLine(Customer.FirstName + ' ' + Customer.LastName);
+}
+
+
+//2)Insert new customer with sale record
+
+Console.WriteLine("Enter Customer First Name:");
+string firstName = Console.ReadLine().ToLower();
+
+Console.WriteLine("Enter Customer Last Name:");
+string lastName = Console.ReadLine().ToLower();
+
+
+Console.WriteLine("Enter Product ID:");
+if (!int.TryParse(Console.ReadLine(), out int productId))
+{
+    Console.WriteLine("Invalid Product ID.");
+    return;
+}
+
+var newCustomer = new Customer
+{
+    FirstName = firstName,
+    LastName = lastName
+};
+
+var product = context.Products.FirstOrDefault(p => p.Id == productId);
+if (product == null)
+{
+    Console.WriteLine($"Product with ID '{productId}' does not exist. Please check the Product ID.");
+    return;
+}
+
+var newSale = new Sale
+{
+    Customer = newCustomer,
+    Product = product,
+};
+
+context.Customers.Add(newCustomer);
+context.Sales.Add(newSale);
+
+context.SaveChanges();
+
+Console.WriteLine("Customer and sale record added successfully.");
+
+// 3)Add a new store
+
+Console.WriteLine("Enter Store Name:");
+string Name = Console.ReadLine();
+
+var newStore = new Store
+{
+    Name = Name
+};
+
+context.Stores.Add(newStore);
+context.SaveChanges();
+
+
+Console.WriteLine();
+
+
+//4) List of all stores
+
+var storesWithSales = context.Stores.Include(s => s.Sales)
+.Where(s => s.Sales.Count > 0)
+.ToList();
+
+foreach (var store in storesWithSales)
+{
+    Console.WriteLine($"{store.Name}");
+}
 
 
 Console.ReadLine();
-
 
 
 
